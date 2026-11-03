@@ -1,0 +1,214 @@
+#!/usr/bin/env bash
+# wjord — Markdown in, InDesign out.
+# Part of the Wjerk Software and Utilities Bundle.
+# License: MPL-2.0
+#
+# Works with the bash that ships on macOS (3.2) and with Linux.
+
+set -u
+
+VERSION="0.1.0"
+
+# --- locate ourselves (follow symlinks without readlink -f) ---------------
+src="${BASH_SOURCE[0]}"
+while [ -L "$src" ]; do
+  dir="$(cd -P "$(dirname "$src")" && pwd)"
+  src="$(readlink "$src")"
+  case "$src" in /*) ;; *) src="$dir/$src" ;; esac
+done
+WJORD_HOME="$(cd -P "$(dirname "$src")/.." && pwd)"
+FILTER="$WJORD_HOME/filters/wjord.lua"
+SPECIMEN="$WJORD_HOME/specimen/specimen.md"
+
+# --- options ---------------------------------------------------------------
+RAW=0          # keep Pandoc's nested names ("Blockquote > Paragraph")
+OUTDIR=""      # default: write .icml next to each .md
+INTERVAL=1     # watch poll, seconds
+
+say()  { printf '%s\n' "$*"; }
+err()  { printf 'wjord: %s\n' "$*" >&2; }
+die()  { err "$*"; exit 1; }
+
+usage() {
+  cat <<EOF
+wjord $VERSION — Markdown in, InDesign out.
+
+Usage:
+  wjord build [file.md ...]   Convert files (default: every .md here)
+  wjord watch [folder]        Rebuild each .icml whenever its .md is saved
+  wjord specimen [file.icml]  Write a story that holds every style
+  wjord styles                List the style names wjord produces
+  wjord help                  This screen
+
+Options:
+  -o, --out DIR   Write .icml files into DIR instead of beside the .md
+  --raw           Keep Pandoc's nested names, e.g. "Blockquote > Paragraph"
+  -v, --version   Print the version
+
+In InDesign: File > Place the .icml. Re-save the .md, then update
+the link in the Links panel. Style everything with paragraph and
+character styles. Local overrides are lost on update.
+EOF
+}
+
+need_pandoc() {
+  command -v pandoc >/dev/null 2>&1 || die "pandoc not found. Install it: brew install pandoc"
+}
+
+# Pandoc nests names for paragraphs inside containers:
+#   "Blockquote > Paragraph", "Footnote > Paragraph", "Pullquote > Paragraph"
+# Unless --raw, trim the trailing " > Paragraph" so the style is simply
+# "Blockquote", "Footnote", "Pullquote".
+flatten() {
+  if [ "$RAW" -eq 1 ]; then cat; else sed 's/ &gt; Paragraph"/"/g'; fi
+}
+
+out_path() {
+  local md="$1" base
+  base="$(basename "${md%.*}")"
+  if [ -n "$OUTDIR" ]; then
+    printf '%s/%s.icml' "$OUTDIR" "$base"
+  else
+    printf '%s/%s.icml' "$(dirname "$md")" "$base"
+  fi
+}
+
+convert() {
+  local md="$1" out tmp
+  out="$(out_path "$md")"
+  tmp="$out.wjord-tmp"
+  if pandoc "$md" -s -f markdown -t icml --lua-filter="$FILTER" \
+       --resource-path="$(dirname "$md")" -o "$tmp" 2> "$tmp.log"; then
+    flatten < "$tmp" > "$out" && rm -f "$tmp"
+    # Show warnings (missing images and the like) but do not fail.
+    [ -s "$tmp.log" ] && sed 's/^/  /' "$tmp.log" >&2
+    rm -f "$tmp.log"
+    say "  $(basename "$md")  ->  $out"
+    return 0
+  else
+    err "could not convert $md"
+    sed 's/^/  /' "$tmp.log" >&2
+    rm -f "$tmp" "$tmp.log"
+    return 1
+  fi
+}
+
+cmd_build() {
+  need_pandoc
+  local files=() f status=0
+  if [ $# -eq 0 ]; then
+    for f in ./*.md; do [ -e "$f" ] && files+=("$f"); done
+    [ ${#files[@]} -eq 0 ] && die "no .md files here"
+  else
+    files=("$@")
+  fi
+  [ -n "$OUTDIR" ] && mkdir -p "$OUTDIR"
+  for f in "${files[@]}"; do
+    [ -f "$f" ] || { err "no such file: $f"; status=1; continue; }
+    convert "$f" || status=1
+  done
+  return $status
+}
+
+# Modification time in seconds. GNU stat (Linux) takes -c; BSD stat (macOS)
+# takes -f. Test GNU first: on Linux, "stat -f" means filesystem status.
+if stat -c '%Y' / >/dev/null 2>&1; then
+  mtime() { stat -c '%Y' "$1" 2>/dev/null; }
+else
+  mtime() { stat -f '%m' "$1" 2>/dev/null; }
+fi
+
+cmd_watch() {
+  need_pandoc
+  local folder="${1:-.}" f out m seen=$'\n'
+  [ -d "$folder" ] || die "no such folder: $folder"
+  [ -n "$OUTDIR" ] && mkdir -p "$OUTDIR"
+  say "wjord is watching $(cd "$folder" && pwd)"
+  say "Save a .md and its .icml rebuilds. Ctrl-C to stop."
+  trap 'say ""; say "wjord stopped."; exit 0' INT TERM
+  # "seen" remembers each file's modification time at its last build,
+  # one "path<TAB>mtime" per line. A file rebuilds only when that changes,
+  # so a broken file is not retried until it is saved again.
+  while :; do
+    for f in "$folder"/*.md; do
+      [ -e "$f" ] || continue
+      m="$(mtime "$f")"
+      case "$seen" in *$'\n'"$f"$'\t'"$m"$'\n'*) continue ;; esac
+      out="$(out_path "$f")"
+      case "$seen" in
+        *$'\n'"$f"$'\t'*) ;;   # known file, changed: rebuild
+        *) # first look: skip if the .icml is already current
+           if [ -e "$out" ] && ! [ "$f" -nt "$out" ]; then
+             seen="$seen$f"$'\t'"$m"$'\n'; continue
+           fi ;;
+      esac
+      printf '%s ' "$(date '+%H:%M:%S')"
+      convert "$f"
+      seen="$(printf '%s' "$seen" | grep -v -F -e "$f"$'\t';printf '%s\t%s' "$f" "$m")"
+      seen=$'\n'"$seen"$'\n'
+    done
+    sleep "$INTERVAL"
+  done
+}
+
+cmd_specimen() {
+  need_pandoc
+  local out="${1:-wjord-specimen.icml}"
+  pandoc "$SPECIMEN" -s -f markdown -t icml --lua-filter="$FILTER" 2>/dev/null \
+    | flatten > "$out" || die "could not write specimen"
+  say "Wrote $out"
+  say "Place it in a new InDesign document. Every wjord style appears"
+  say "in your Styles panels. Design them, delete the story, and save"
+  say "the file as a template (.indt)."
+}
+
+cmd_styles() {
+  cat <<'EOF'
+Paragraph styles
+  Paragraph         body text
+  Header1-Header6   # through ######
+  Blockquote        > quoted text
+  BulList           - bullet items        (BulList > first = first item)
+  NumList           1. numbered items     (NumList > first = first item)
+  CodeBlock         ``` fenced code
+  Footnote          footnote text
+  Figure            image paragraph
+  Caption           image caption
+  TablePar          table cell text       (TablePar > TableHeader = header row)
+  TableCaption      table caption
+  DefListTerm       definition list term
+  DefListDef        definition list text
+
+Character styles
+  Italic  Bold  Bold Italic  Code  Link
+  Superscript  Subscript  Strikeout  SmallCaps
+
+Your own styles
+  ::: pullquote          -> paragraph style "Pullquote"
+  [text]{.highlight}     -> character style "Highlight"
+EOF
+}
+
+# --- parse ----------------------------------------------------------------
+cmd=""
+args=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -o|--out)      [ $# -ge 2 ] || die "$1 needs a folder"; OUTDIR="$2"; shift 2 ;;
+    --raw)         RAW=1; shift ;;
+    -v|--version)  say "wjord $VERSION"; exit 0 ;;
+    -h|--help)     usage; exit 0 ;;
+    -*)            die "unknown option: $1 (try wjord help)" ;;
+    *)             if [ -z "$cmd" ]; then cmd="$1"; else args+=("$1"); fi; shift ;;
+  esac
+done
+
+case "${cmd:-help}" in
+  build)    cmd_build ${args[@]+"${args[@]}"} ;;
+  watch)    cmd_watch ${args[@]+"${args[@]}"} ;;
+  specimen) cmd_specimen ${args[@]+"${args[@]}"} ;;
+  styles)   cmd_styles ;;
+  help)     usage ;;
+  *.md)     cmd_build "$cmd" ${args[@]+"${args[@]}"} ;;
+  *)        die "unknown command: $cmd (try wjord help)" ;;
+esac

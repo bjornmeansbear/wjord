@@ -1,0 +1,4 @@
+.DS_Store
+*.wjord-tmp
+*.wjord-tmp.log
+wjord-specimen.icml

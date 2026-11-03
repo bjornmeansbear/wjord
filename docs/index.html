@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wjord</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Wjord turns Markdown into linked InDesign stories. Write in plain text. Design in style sheets.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one narrow column, like a galley. The demo borrows InDesign's
+   Story Editor: style names in a left gutter, the set text beside them. */
+:root {
+  --paper: #ffffff;
+  --ink: #16191d;
+  --ink-2: #4a5059;        /* secondary text */
+  --rule: #d6dae0;
+  --well: #f3f5f7;         /* code and gutter ground */
+  --thread: #0a58a8;       /* accent: InDesign's frame-edge blue, darkened for text */
+  --display: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --text: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --measure: 38rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #111316; --ink: #eceef1; --ink-2: #a9b0ba; --rule: #2c3138;
+    --well: #1a1d21; --thread: #7db6ff; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #111316; --ink: #eceef1; --ink-2: #a9b0ba; --rule: #2c3138;
+  --well: #1a1d21; --thread: #7db6ff; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--text);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  font-optical-sizing: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 2.5rem 4rem;
+}
+.page { max-width: 60rem; margin: 0 auto; display: grid; gap: 4.5rem; }
+a { color: var(--thread); text-underline-offset: 0.18em; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--thread); outline-offset: 3px; border-radius: 2px; }
+code, pre, .mono { font-family: var(--mono); font-size: 0.875rem; }
+h2 {
+  font-family: var(--display); font-weight: 600; font-size: 1.5rem;
+  line-height: 1.2; margin: 0; text-wrap: balance;
+}
+p { margin: 0; max-width: var(--measure); }
+.label {
+  font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink-2);
+}
+section { display: grid; gap: 1.25rem; }
+
+/* ---------- Masthead ---------- */
+.mast { display: grid; gap: 1.5rem; }
+.mast .label a { color: inherit; text-decoration: none; }
+.wordmark {
+  font-family: var(--display); font-weight: 800;
+  font-size: clamp(4.5rem, 22vw, 11rem); line-height: 0.82;
+  letter-spacing: -0.045em; margin: 0;
+}
+.wordmark .j { color: var(--thread); }
+.lede {
+  font-family: var(--display); font-weight: 400;
+  font-size: clamp(1.4rem, 4.2vw, 2rem); line-height: 1.2; max-width: 30rem;
+  text-wrap: balance;
+}
+.install {
+  display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: stretch; max-width: 40rem;
+}
+.cmd {
+  flex: 1 1 18rem; min-width: 0; background: var(--well); border: 1px solid var(--rule);
+  padding: 0.75rem 1rem; overflow-x: auto; white-space: pre; margin: 0; line-height: 1.6;
+}
+.cmd .p { color: var(--ink-2); user-select: none; }
+.btn {
+  font: 500 0.875rem/1 var(--mono); padding: 0.85rem 1.1rem; min-height: 44px;
+  border: 1px solid var(--ink); background: var(--ink); color: var(--paper); cursor: pointer;
+}
+.btn:hover { background: var(--thread); border-color: var(--thread); }
+.btn.ghost { background: transparent; color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; }
+.btn.ghost:hover { color: var(--paper); }
+.actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+
+/* ---------- Story Editor demo ---------- */
+.demo { display: grid; grid-template-columns: 1fr; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+@media (min-width: 52rem) { .demo { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); } }
+.pane { background: var(--paper); min-width: 0; display: grid; grid-template-rows: auto 1fr; }
+.pane-head { display: flex; justify-content: space-between; gap: 1rem; padding: 0.6rem 1rem; border-bottom: 1px solid var(--rule); background: var(--well); }
+.source { margin: 0; padding: 1rem; overflow-x: auto; white-space: pre-wrap; line-height: 1.75; color: var(--ink); }
+.source .mk { color: var(--thread); }
+.story { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-content: start; }
+.story > * { padding: 0.55rem 1rem; border-bottom: 1px solid var(--rule); }
+.story > :nth-last-child(-n+2) { border-bottom: 0; }
+.tag {
+  font-family: var(--mono); font-size: 0.6875rem; color: var(--thread);
+  background: var(--well); border-right: 1px solid var(--rule); padding-top: 0.75rem;
+  white-space: nowrap;
+}
+.set { min-width: 0; }
+.s-h1 { font-family: var(--display); font-weight: 800; font-size: 1.6rem; line-height: 1.1; letter-spacing: -0.02em; }
+.s-h2 { font-family: var(--display); font-weight: 600; font-size: 1.15rem; }
+.s-p { font-size: 1rem; }
+.s-pull { font-family: var(--display); font-size: 1.35rem; line-height: 1.25; border-left: 3px solid var(--thread); padding-left: 0.85rem; }
+.s-fn { font-size: 0.8125rem; color: var(--ink-2); }
+.s-fn sup, .s-p sup { color: var(--thread); }
+.cs { border-bottom: 1px dotted var(--thread); }
+.legend { font-size: 0.875rem; color: var(--ink-2); max-width: var(--measure); }
+
+/* ---------- Steps ---------- */
+.steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 1px; background: var(--rule); border-block: 1px solid var(--rule); counter-reset: step; }
+@media (min-width: 46rem) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.steps li { background: var(--paper); padding: 1.25rem 1.25rem 1.5rem 0; display: grid; gap: 0.6rem; counter-increment: step; min-width: 0; }
+@media (min-width: 46rem) { .steps li:nth-child(even) { padding-left: 1.5rem; } }
+.steps h3 { margin: 0; font-family: var(--display); font-weight: 600; font-size: 1.15rem; display: flex; gap: 0.6rem; align-items: baseline; }
+.steps h3::before { content: counter(step); font-family: var(--mono); font-size: 0.8125rem; color: var(--thread); font-weight: 500; }
+.steps p { font-size: 1rem; color: var(--ink-2); }
+.steps code { color: var(--ink); background: var(--well); padding: 0.1em 0.35em; }
+
+/* ---------- Rule ---------- */
+.rule-block { border-top: 3px solid var(--ink); padding-top: 1.25rem; display: grid; gap: 0.75rem; }
+.rule-block .big { font-family: var(--display); font-weight: 800; font-size: clamp(1.75rem, 6vw, 2.75rem); line-height: 1.05; letter-spacing: -0.02em; max-width: 22ch; text-wrap: balance; }
+
+/* ---------- Style names ---------- */
+.names { display: grid; gap: 2rem; }
+@media (min-width: 46rem) { .names { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9375rem; }
+caption { text-align: left; padding-bottom: 0.5rem; }
+th, td { text-align: left; padding: 0.45rem 0.75rem 0.45rem 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 600; font-size: 0.8125rem; color: var(--ink-2); }
+td:last-child { color: var(--thread); font-family: var(--mono); font-size: 0.8125rem; white-space: nowrap; }
+td:first-child code { color: var(--ink); }
+
+/* ---------- Footer ---------- */
+footer { border-top: 1px solid var(--rule); padding-top: 1.25rem; display: flex; flex-wrap: wrap; gap: 0.5rem 2rem; font-size: 0.875rem; color: var(--ink-2); }
+footer p { max-width: none; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+.btn { transition: background-color 120ms, border-color 120ms; }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="mast">
+    <p class="label">Wjerk Software &amp; Utilities Bundle · No. 01</p>
+    <h1 class="wordmark">W<span class="j">j</span>ord</h1>
+    <p class="lede">Markdown in. InDesign out. Save the text file and the layout updates.</p>
+    <div class="install">
+      <pre class="cmd" id="cmd"><span class="p">$ </span>git clone https://github.com/bjornmeansbear/wjord.git
+<span class="p">$ </span>cd wjord &amp;&amp; ./install.sh</pre>
+      <button class="btn" id="copy" type="button">Copy</button>
+    </div>
+    <div class="actions">
+      <a class="btn ghost" href="https://github.com/bjornmeansbear/wjord">View on GitHub</a>
+      <a class="btn ghost" href="https://pandoc.org/installing.html">Get Pandoc</a>
+    </div>
+  </header>
+
+  <section aria-labelledby="h-demo">
+    <h2 id="h-demo">The text names the part. The template sets the type.</h2>
+    <div class="demo">
+      <div class="pane">
+        <div class="pane-head"><span class="label">chapter-04.md</span><span class="label">What you write</span></div>
+<pre class="source"><span class="mk">#</span> Ely, Nevada
+
+<span class="mk">##</span> Day four
+
+We crossed the basin before noon.
+The radio found <span class="mk">*</span>one<span class="mk">*</span> station.<span class="mk">[^1]</span>
+
+<span class="mk">::: pullquote</span>
+The road was the only straight line
+for a hundred miles.
+<span class="mk">:::</span>
+
+<span class="mk">[^1]:</span> Country, mostly.</pre>
+      </div>
+      <div class="pane">
+        <div class="pane-head"><span class="label">chapter-04.icml</span><span class="label">What InDesign gets</span></div>
+        <div class="story">
+          <div class="tag">Header1</div><div class="set s-h1">Ely, Nevada</div>
+          <div class="tag">Header2</div><div class="set s-h2">Day four</div>
+          <div class="tag">Paragraph</div><div class="set s-p">We crossed the basin before noon. The radio found <em class="cs">one</em> station.<sup>1</sup></div>
+          <div class="tag">Pullquote</div><div class="set s-pull">The road was the only straight line for a hundred miles.</div>
+          <div class="tag">Footnote</div><div class="set s-fn"><sup>1</sup> Country, mostly.</div>
+        </div>
+      </div>
+    </div>
+    <p class="legend">Left column: the paragraph style each line lands in, as InDesign's Story Editor shows it. The dotted word carries the character style <span class="mono">Italic</span>. No local formatting anywhere.</p>
+  </section>
+
+  <section aria-labelledby="h-why">
+    <h2 id="h-why">Why it exists</h2>
+    <p>I write in Markdown and set books in InDesign. For years the trip went Markdown to HTML to XML to InDesign, by hand, one conversion at a time. It worked once. It never worked twice.</p>
+    <p>Pandoc already turns Markdown into ICML, the InCopy story format that InDesign places as a linked file. Wjord is the glue around it: a watcher, clean style names, your own styles from plain classes, and a specimen for building the template.</p>
+  </section>
+
+  <section aria-labelledby="h-steps">
+    <h2 id="h-steps">Four steps</h2>
+    <ol class="steps">
+      <li><h3>Build a template, once</h3><p>Run <code>wjord specimen</code> and place the file in a new document. Every style appears in your panels. Design them, delete the story, save as <code>.indt</code>.</p></li>
+      <li><h3>Write</h3><p>One Markdown file per chapter, in one folder. Mark a block <code>::: pullquote</code> to make your own style.</p></li>
+      <li><h3>Watch</h3><p>Run <code>wjord watch</code> in that folder and leave Terminal open. Each save rebuilds that chapter's <code>.icml</code>.</p></li>
+      <li><h3>Place and update</h3><p>File → Place the <code>.icml</code>. After an edit, the Links panel flags the story. Update it and the text reflows.</p></li>
+    </ol>
+  </section>
+
+  <section class="rule-block" aria-labelledby="h-rule">
+    <p class="label" id="h-rule">The one rule</p>
+    <p class="big">Never format the text in InDesign.</p>
+    <p>An update replaces the whole story. Any local change goes with it. Every decision belongs in a paragraph or character style, where it applies everywhere at once.</p>
+  </section>
+
+  <section aria-labelledby="h-names">
+    <h2 id="h-names">Style names</h2>
+    <p>Name your template's styles to match. Case counts.</p>
+    <div class="names">
+      <div class="tbl-wrap">
+        <table>
+          <caption class="label">Paragraph styles</caption>
+          <thead><tr><th scope="col">Markdown</th><th scope="col">Style</th></tr></thead>
+          <tbody>
+            <tr><td>Plain text</td><td>Paragraph</td></tr>
+            <tr><td><code>#</code> to <code>######</code></td><td>Header1–6</td></tr>
+            <tr><td><code>&gt; quote</code></td><td>Blockquote</td></tr>
+            <tr><td><code>- item</code></td><td>BulList</td></tr>
+            <tr><td><code>1. item</code></td><td>NumList</td></tr>
+            <tr><td>Fenced code</td><td>CodeBlock</td></tr>
+            <tr><td>Footnote</td><td>Footnote</td></tr>
+            <tr><td>Image caption</td><td>Caption</td></tr>
+            <tr><td><code>::: name</code></td><td>Name</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <caption class="label">Character styles</caption>
+          <thead><tr><th scope="col">Markdown</th><th scope="col">Style</th></tr></thead>
+          <tbody>
+            <tr><td><code>*text*</code></td><td>Italic</td></tr>
+            <tr><td><code>**text**</code></td><td>Bold</td></tr>
+            <tr><td><code>***text***</code></td><td>Bold Italic</td></tr>
+            <tr><td><code>`text`</code></td><td>Code</td></tr>
+            <tr><td><code>[text](url)</code></td><td>Link</td></tr>
+            <tr><td><code>^text^</code></td><td>Superscript</td></tr>
+            <tr><td><code>~text~</code></td><td>Subscript</td></tr>
+            <tr><td><code>[text]{.name}</code></td><td>Name</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="legend">Lists and tables carry a few more names, like <span class="mono">BulList &gt; first</span> for the first item. Run <span class="mono">wjord styles</span> for the full set.</p>
+  </section>
+
+  <footer>
+    <p>Pandoc does the hard part. <a href="https://pandoc.org">pandoc.org</a></p>
+    <p>MPL-2.0</p>
+    <p>Wjerk Software &amp; Utilities Bundle</p>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  var btn = document.getElementById('copy');
+  var text = 'git clone https://github.com/bjornmeansbear/wjord.git\ncd wjord && ./install.sh';
+  function selectCmd() {
+    var r = document.createRange();
+    r.selectNodeContents(document.getElementById('cmd'));
+    var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  }
+  btn.addEventListener('click', function () {
+    var done = function () { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1600); };
+    try {
+      navigator.clipboard.writeText(text).then(done, function () { selectCmd(); btn.textContent = 'Press ⌘C'; });
+    } catch (e) { selectCmd(); btn.textContent = 'Press ⌘C'; }
+  });
+})();
+</script>
+</body>
+</html>
