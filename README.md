@@ -14,7 +14,7 @@ Wjord makes it one step. Save the text file. InDesign updates.
 
 Markdown says what a thing is. A `#` is a heading. A `*word*` is emphasis. It says nothing about how anything looks.
 
-[Pandoc](https://pandoc.org) turns that structure into ICML, the InCopy story format. InDesign places ICML as a linked story. Every paragraph arrives tagged with a style name: `Header1`, `Paragraph`, `Blockquote`. Every bold or italic arrives as a character style: `Bold`, `Italic`, `Bold Italic`. No local overrides.
+[Pandoc](https://pandoc.org) turns that structure into ICML: the InCopy story format. InDesign places ICML as a linked story. Every paragraph arrives tagged with a style name: `Header1`, `Paragraph`, `Blockquote`. Every bold or italic arrives as a character style: `Bold`, `Italic`, `Bold Italic`. No local overrides.
 
 Your InDesign template holds the look. When a name in the story matches a style in the document, the document wins. The words live in Markdown. The form lives in the style sheet. The name is the joint between them.
 
