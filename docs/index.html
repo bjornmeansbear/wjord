@@ -6,150 +6,152 @@
 <title>Wjord</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Wjord turns Markdown into linked InDesign stories. Write in plain text. Design in style sheets.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="preload" href="fonts/BricolageGrotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="kit.css">
 <style>
-/* Layout: one narrow column, like a galley. The demo borrows InDesign's
-   Story Editor: style names in a left gutter, the set text beside them. */
+/* Tokens, type scale, dark mode and focus come from kit.css, a plain copy of
+   ~/Code/color-system-and-guidelines/kit.css (github.com/bjornmeansbear/
+   color-system-and-guidelines). Re-sync with that repo's scripts/sync.py;
+   don't edit kit.css here. This block only sets the page's own layout.
+
+   Layout: one narrow column, like a galley. The demo borrows InDesign's
+   Story Editor: style names in a left gutter, the set text beside them.
+
+   No tinted wells: pink-5 falls to 4.1–4.3:1 on white-3/4 (fails AA for the
+   small style-name labels), so panes are ruled, not filled. */
+
+/* Both OFL, self-hosted. Licenses sit beside the files in fonts/. */
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("fonts/BricolageGrotesque-latin.woff2") format("woff2");
+  font-weight: 400 800; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("fonts/IBMPlexMono-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
 :root {
-  --paper: #ffffff;
-  --ink: #16191d;
-  --ink-2: #4a5059;        /* secondary text */
-  --rule: #d6dae0;
-  --well: #f3f5f7;         /* code and gutter ground */
-  --thread: #0a58a8;       /* accent: InDesign's frame-edge blue, darkened for text */
-  --display: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
-  --text: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-display: "Bricolage Grotesque", var(--font-sans);
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   --measure: 38rem;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --paper: #111316; --ink: #eceef1; --ink-2: #a9b0ba; --rule: #2c3138;
-    --well: #1a1d21; --thread: #7db6ff; color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --paper: #111316; --ink: #eceef1; --ink-2: #a9b0ba; --rule: #2c3138;
-  --well: #1a1d21; --thread: #7db6ff; color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; }
 body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--text);
-  font-size: 1.0625rem;
-  line-height: 1.55;
   font-optical-sizing: auto;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 2.5rem 4rem;
+  padding-block: 2.25rem 4.5rem;
 }
+/* kit.css gives headings and p a 1.5rem bottom margin; this page spaces with grid gaps. */
+h1, h2, h3, p { margin: 0; }
 .page { max-width: 60rem; margin: 0 auto; display: grid; gap: 4.5rem; }
-a { color: var(--thread); text-underline-offset: 0.18em; }
-a:focus-visible, button:focus-visible { outline: 2px solid var(--thread); outline-offset: 3px; border-radius: 2px; }
-code, pre, .mono { font-family: var(--mono); font-size: 0.875rem; }
+a { color: var(--color-accent); text-underline-offset: 0.18em; }
+a:hover { color: var(--color-accent-hover); }
+code, pre, .mono { font-family: var(--font-mono); font-size: var(--text-sm); }
 h2 {
-  font-family: var(--display); font-weight: 600; font-size: 1.5rem;
-  line-height: 1.2; margin: 0; text-wrap: balance;
+  font-weight: 600; font-size: var(--text-xl); line-height: var(--leading-xl);
+  text-wrap: balance;
 }
-p { margin: 0; max-width: var(--measure); }
+p { max-width: var(--measure); }
 .label {
-  font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.06em;
-  text-transform: uppercase; color: var(--ink-2);
+  font-family: var(--font-mono); font-size: var(--text-2xs); line-height: var(--leading-2xs);
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-text-muted);
 }
-section { display: grid; gap: 1.25rem; }
+section { display: grid; gap: 1.5rem; }
 
 /* ---------- Masthead ---------- */
 .mast { display: grid; gap: 1.5rem; }
 .mast .label a { color: inherit; text-decoration: none; }
 .wordmark {
-  font-family: var(--display); font-weight: 800;
+  font-weight: 800;
   font-size: clamp(4.5rem, 22vw, 11rem); line-height: 0.82;
-  letter-spacing: -0.045em; margin: 0;
+  letter-spacing: -0.045em;
 }
-.wordmark .j { color: var(--thread); }
+.wordmark .j { color: var(--color-accent); }
 .lede {
-  font-family: var(--display); font-weight: 400;
-  font-size: clamp(1.4rem, 4.2vw, 2rem); line-height: 1.2; max-width: 30rem;
+  font-family: var(--font-display); font-weight: 400;
+  font-size: var(--text-lg); line-height: var(--leading-lg); max-width: 30rem;
   text-wrap: balance;
 }
-.install {
-  display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: stretch; max-width: 40rem;
+@media (min-width: 40rem) {
+  .lede { font-size: var(--text-xl); line-height: var(--leading-xl); }
 }
+.install { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: stretch; max-width: 40rem; }
 .cmd {
-  flex: 1 1 18rem; min-width: 0; background: var(--well); border: 1px solid var(--rule);
-  padding: 0.75rem 1rem; overflow-x: auto; white-space: pre; margin: 0; line-height: 1.6;
+  flex: 1 1 18rem; min-width: 0; border: 1px solid var(--color-border);
+  padding: 0.75rem 1rem; overflow-x: auto; white-space: pre; margin: 0; line-height: var(--leading-base);
 }
-.cmd .p { color: var(--ink-2); user-select: none; }
+.cmd .p { color: var(--color-text-muted); user-select: none; }
+/* Overrides kit .btn: solid ink, accent on hover, invert on press. */
 .btn {
-  font: 500 0.875rem/1 var(--mono); padding: 0.85rem 1.1rem; min-height: 44px;
-  border: 1px solid var(--ink); background: var(--ink); color: var(--paper); cursor: pointer;
+  font-family: var(--font-mono); font-size: var(--text-sm); line-height: 1;
+  padding: 0.85rem 1.1rem; min-height: 44px;
+  border: 1px solid var(--color-text); background: var(--color-text); color: var(--color-bg);
 }
-.btn:hover { background: var(--thread); border-color: var(--thread); }
-.btn.ghost { background: transparent; color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; }
-.btn.ghost:hover { color: var(--paper); }
+.btn:hover { background: var(--color-accent); border-color: var(--color-accent); }
+.btn.ghost { background: transparent; color: var(--color-text); text-decoration: none; display: inline-flex; align-items: center; }
+.btn.ghost:hover, .btn.ghost:active { background: var(--color-text); border-color: var(--color-text); color: var(--color-bg); }
 .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
 
 /* ---------- Story Editor demo ---------- */
-.demo { display: grid; grid-template-columns: 1fr; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
-@media (min-width: 52rem) { .demo { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); } }
-.pane { background: var(--paper); min-width: 0; display: grid; grid-template-rows: auto 1fr; }
-.pane-head { display: flex; justify-content: space-between; gap: 1rem; padding: 0.6rem 1rem; border-bottom: 1px solid var(--rule); background: var(--well); }
-.source { margin: 0; padding: 1rem; overflow-x: auto; white-space: pre-wrap; line-height: 1.75; color: var(--ink); }
-.source .mk { color: var(--thread); }
+.demo { display: grid; grid-template-columns: 1fr; gap: 1px; background: var(--color-border); border: 1px solid var(--color-border); }
+@media (min-width: 55rem) { .demo { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); } }
+.pane { background: var(--color-bg); min-width: 0; display: grid; grid-template-rows: auto 1fr; }
+.pane-head { display: flex; justify-content: space-between; gap: 1rem; padding: 0.375rem 1rem; border-bottom: 1px solid var(--color-border); }
+.source { margin: 0; padding: 1rem; overflow-x: auto; white-space: pre-wrap; line-height: var(--leading-lg); }
+.source .mk { color: var(--color-accent); }
 .story { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-content: start; }
-.story > * { padding: 0.55rem 1rem; border-bottom: 1px solid var(--rule); }
+.story > * { padding: 0.375rem 1rem; border-bottom: 1px solid var(--color-border); }
 .story > :nth-last-child(-n+2) { border-bottom: 0; }
-.tag {
-  font-family: var(--mono); font-size: 0.6875rem; color: var(--thread);
-  background: var(--well); border-right: 1px solid var(--rule); padding-top: 0.75rem;
-  white-space: nowrap;
+/* Paragraph-style name in the gutter (not kit .tag, which is a pill). */
+.ps {
+  font-family: var(--font-mono); font-size: var(--text-2xs); line-height: var(--leading-2xs);
+  color: var(--color-accent); border-right: 1px solid var(--color-border);
+  padding-top: 0.75rem; white-space: nowrap;
 }
 .set { min-width: 0; }
-.s-h1 { font-family: var(--display); font-weight: 800; font-size: 1.6rem; line-height: 1.1; letter-spacing: -0.02em; }
-.s-h2 { font-family: var(--display); font-weight: 600; font-size: 1.15rem; }
-.s-p { font-size: 1rem; }
-.s-pull { font-family: var(--display); font-size: 1.35rem; line-height: 1.25; border-left: 3px solid var(--thread); padding-left: 0.85rem; }
-.s-fn { font-size: 0.8125rem; color: var(--ink-2); }
-.s-fn sup, .s-p sup { color: var(--thread); }
-.cs { border-bottom: 1px dotted var(--thread); }
-.legend { font-size: 0.875rem; color: var(--ink-2); max-width: var(--measure); }
+.s-h1 { font-family: var(--font-display); font-weight: 800; font-size: var(--text-xl); line-height: var(--leading-xl); letter-spacing: -0.02em; }
+.s-h2 { font-family: var(--font-display); font-weight: 600; font-size: var(--text-md); line-height: var(--leading-md); }
+.s-pull { font-family: var(--font-display); font-size: var(--text-lg); line-height: var(--leading-lg); border-left: 3px solid var(--color-accent); padding-left: 0.75rem; }
+.s-fn { font-size: var(--text-xs); line-height: var(--leading-xs); color: var(--color-text-muted); }
+.s-fn sup, .s-p sup { color: var(--color-accent); }
+.cs { border-bottom: 1px dotted var(--color-accent); }
+.legend { font-size: var(--text-sm); line-height: var(--leading-sm); color: var(--color-text-muted); max-width: var(--measure); }
 
 /* ---------- Steps ---------- */
-.steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 1px; background: var(--rule); border-block: 1px solid var(--rule); counter-reset: step; }
-@media (min-width: 46rem) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.steps li { background: var(--paper); padding: 1.25rem 1.25rem 1.5rem 0; display: grid; gap: 0.6rem; counter-increment: step; min-width: 0; }
-@media (min-width: 46rem) { .steps li:nth-child(even) { padding-left: 1.5rem; } }
-.steps h3 { margin: 0; font-family: var(--display); font-weight: 600; font-size: 1.15rem; display: flex; gap: 0.6rem; align-items: baseline; }
-.steps h3::before { content: counter(step); font-family: var(--mono); font-size: 0.8125rem; color: var(--thread); font-weight: 500; }
-.steps p { font-size: 1rem; color: var(--ink-2); }
-.steps code { color: var(--ink); background: var(--well); padding: 0.1em 0.35em; }
+.steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 1px; background: var(--color-border); border-block: 1px solid var(--color-border); counter-reset: step; }
+@media (min-width: 40rem) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.steps li { background: var(--color-bg); padding: 1.125rem 1.25rem 1.5rem 0; display: grid; gap: 0.375rem; align-content: start; counter-increment: step; min-width: 0; }
+@media (min-width: 40rem) { .steps li:nth-child(even) { padding-left: 1.5rem; } }
+.steps h3 { font-weight: 600; font-size: var(--text-md); line-height: var(--leading-md); display: flex; gap: 0.6rem; align-items: baseline; }
+.steps h3::before { content: counter(step); font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-accent); font-weight: 400; }
+.steps p { color: var(--color-text-muted); }
+.steps code { color: var(--color-text); }
 
 /* ---------- Rule ---------- */
-.rule-block { border-top: 3px solid var(--ink); padding-top: 1.25rem; display: grid; gap: 0.75rem; }
-.rule-block .big { font-family: var(--display); font-weight: 800; font-size: clamp(1.75rem, 6vw, 2.75rem); line-height: 1.05; letter-spacing: -0.02em; max-width: 22ch; text-wrap: balance; }
+.rule-block { border-top: 3px solid var(--color-frame); padding-top: 1.125rem; display: grid; gap: 0.75rem; }
+.rule-block .big { font-family: var(--font-display); font-weight: 800; font-size: var(--text-2xl); line-height: var(--leading-2xl); letter-spacing: -0.02em; max-width: 22ch; text-wrap: balance; }
+@media (min-width: 40rem) { .rule-block .big { font-size: var(--text-3xl); line-height: var(--leading-3xl); } }
 
 /* ---------- Style names ---------- */
-.names { display: grid; gap: 2rem; }
-@media (min-width: 46rem) { .names { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.names { display: grid; gap: 2.25rem; }
+@media (min-width: 40rem) { .names { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 .tbl-wrap { overflow-x: auto; }
-table { border-collapse: collapse; width: 100%; font-size: 0.9375rem; }
-caption { text-align: left; padding-bottom: 0.5rem; }
-th, td { text-align: left; padding: 0.45rem 0.75rem 0.45rem 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
-th { font-weight: 600; font-size: 0.8125rem; color: var(--ink-2); }
-td:last-child { color: var(--thread); font-family: var(--mono); font-size: 0.8125rem; white-space: nowrap; }
-td:first-child code { color: var(--ink); }
+table { border-collapse: collapse; width: 100%; font-size: var(--text-sm); line-height: var(--leading-sm); }
+caption { text-align: left; padding-bottom: 0.375rem; }
+th, td { text-align: left; padding: 0.375rem 0.75rem 0.375rem 0; border-bottom: 1px solid var(--color-border); vertical-align: top; }
+th { font-weight: 600; font-size: var(--text-xs); color: var(--color-text-muted); }
+td:last-child { color: var(--color-accent); font-family: var(--font-mono); font-size: var(--text-xs); white-space: nowrap; }
+td:first-child code { color: var(--color-text); }
 
 /* ---------- Footer ---------- */
-footer { border-top: 1px solid var(--rule); padding-top: 1.25rem; display: flex; flex-wrap: wrap; gap: 0.5rem 2rem; font-size: 0.875rem; color: var(--ink-2); }
+footer { border-top: 1px solid var(--color-border); padding-top: 1.125rem; display: flex; flex-wrap: wrap; gap: 0.375rem 2rem; font-size: var(--text-sm); line-height: var(--leading-sm); color: var(--color-text-muted); }
 footer p { max-width: none; }
 
+.btn { transition: background-color 120ms, border-color 120ms, color 120ms; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
-.btn { transition: background-color 120ms, border-color 120ms; }
 </style>
 </head>
 <body>
@@ -193,11 +195,11 @@ for a hundred miles.
       <div class="pane">
         <div class="pane-head"><span class="label">chapter-04.icml</span><span class="label">What InDesign gets</span></div>
         <div class="story">
-          <div class="tag">Header1</div><div class="set s-h1">Ely, Nevada</div>
-          <div class="tag">Header2</div><div class="set s-h2">Day four</div>
-          <div class="tag">Paragraph</div><div class="set s-p">We crossed the basin before noon. The radio found <em class="cs">one</em> station.<sup>1</sup></div>
-          <div class="tag">Pullquote</div><div class="set s-pull">The road was the only straight line for a hundred miles.</div>
-          <div class="tag">Footnote</div><div class="set s-fn"><sup>1</sup> Country, mostly.</div>
+          <div class="ps">Header1</div><div class="set s-h1">Ely, Nevada</div>
+          <div class="ps">Header2</div><div class="set s-h2">Day four</div>
+          <div class="ps">Paragraph</div><div class="set s-p">We crossed the basin before noon. The radio found <em class="cs">one</em> station.<sup>1</sup></div>
+          <div class="ps">Pullquote</div><div class="set s-pull">The road was the only straight line for a hundred miles.</div>
+          <div class="ps">Footnote</div><div class="set s-fn"><sup>1</sup> Country, mostly.</div>
         </div>
       </div>
     </div>
@@ -270,6 +272,7 @@ for a hundred miles.
   <footer>
     <p>Pandoc does the hard part. <a href="https://pandoc.org">pandoc.org</a></p>
     <p>MPL-2.0</p>
+    <p>Set in the <a href="https://github.com/bjornmeansbear/color-system-and-guidelines">Wjerk color system</a></p>
     <p>Wjerk Software &amp; Utilities Bundle</p>
   </footer>
 
